@@ -1,0 +1,1982 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File System</title>
+
+    <style>
+      :root {
+        --bg1: #030712;
+        --bg2: #0b1224;
+        --card: #0f172a;
+        --card2: #111c35;
+        --accent: #38bdf8;
+        --accent2: #a78bfa;
+        --accent3: #22c55e;
+        --yellow: #facc15;
+        --red: #ef4444;
+        --orange: #fb923c;
+        --white: #e2e8f0;
+        --muted: #94a3b8;
+        --border: rgba(148, 163, 184, 0.2);
+        --shadow: 0 18px 70px rgba(0, 0, 0, 0.6);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: radial-gradient(circle at top left, #0f172a, #020617);
+        color: var(--white);
+        overflow-x: hidden;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+        background: rgba(2, 6, 23, 0.84);
+        border-bottom: 1px solid rgba(56, 189, 248, 0.16);
+        backdrop-filter: blur(12px);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        color: #020617;
+        box-shadow: 0 0 22px rgba(56, 189, 248, 0.25);
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.4px;
+      }
+
+      .brand p {
+        margin: 0;
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .controls-top {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      button {
+        cursor: pointer;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-weight: 800;
+        background: rgba(15, 23, 42, 0.7);
+        color: var(--white);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        transition: 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-2px) scale(1.02);
+        border: 1px solid rgba(56, 189, 248, 0.45);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #020617;
+        border: none;
+      }
+
+      .btn-green {
+        background: linear-gradient(135deg, var(--accent3), #4ade80);
+        color: #020617;
+        border: none;
+      }
+
+      .btn-yellow {
+        background: linear-gradient(135deg, var(--yellow), var(--orange));
+        color: #020617;
+        border: none;
+      }
+
+      .btn-red {
+        background: linear-gradient(135deg, var(--red), #fb7185);
+        color: #020617;
+        border: none;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: auto;
+        padding-top: 100px;
+      }
+
+      .slide {
+        display: none;
+        padding: 40px 16px;
+        min-height: calc(100vh - 140px);
+        animation: fadeIn 0.8s ease;
+      }
+
+      .slide.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h2 {
+        margin: 0 0 10px 0;
+        font-size: 2rem;
+        color: var(--accent);
+      }
+
+      h3 {
+        margin: 24px 0 12px 0;
+        font-size: 1.35rem;
+        color: #a5b4fc;
+      }
+
+      p {
+        max-width: 1000px;
+        font-size: 1.08rem;
+        line-height: 1.85;
+        color: #e2e8f0;
+      }
+
+      .card {
+        margin-top: 18px;
+        background: linear-gradient(
+          145deg,
+          rgba(15, 23, 42, 0.95),
+          rgba(17, 28, 53, 0.95)
+        );
+        border: 1px solid rgba(56, 189, 248, 0.16);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .mini {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(2, 6, 23, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        line-height: 1.6;
+      }
+
+      .mini b {
+        color: var(--yellow);
+      }
+
+      ul {
+        font-size: 1.05rem;
+        line-height: 1.85;
+        margin-top: 10px;
+      }
+
+      .highlight {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+      }
+
+      .highlight strong {
+        color: var(--accent);
+      }
+
+      .tip {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(250, 204, 21, 0.09);
+        border-left: 6px solid var(--yellow);
+      }
+
+      .tip b {
+        color: var(--yellow);
+      }
+
+      .meaning-box {
+        margin-top: 20px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(167, 139, 250, 0.1);
+        border-left: 6px solid var(--accent2);
+        border: 1px solid rgba(167, 139, 250, 0.22);
+      }
+
+      .meaning-box h4 {
+        margin: 0 0 12px 0;
+        color: var(--accent2);
+        font-size: 1.1rem;
+      }
+
+      .meaning {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 10px;
+      }
+
+      .meaning div {
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(2, 6, 23, 0.65);
+        border: 1px solid rgba(167, 139, 250, 0.18);
+        font-size: 0.98rem;
+        line-height: 1.6;
+      }
+
+      .meaning span {
+        color: var(--yellow);
+        font-weight: 900;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        overflow: hidden;
+        border-radius: 16px;
+      }
+
+      th,
+      td {
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        padding: 12px;
+        text-align: center;
+      }
+
+      th {
+        background: rgba(2, 6, 23, 0.9);
+        color: var(--accent);
+        font-weight: 900;
+      }
+
+      td {
+        background: rgba(15, 23, 42, 0.65);
+      }
+
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 16px;
+      }
+
+      .block {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .block::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(56, 189, 248, 0.25),
+          rgba(167, 139, 250, 0.18)
+        );
+        opacity: 0.75;
+        transform: translateX(-100%);
+        animation: shimmer 2.2s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        50% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .block.green {
+        background: rgba(34, 197, 94, 0.18);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+      }
+      .block.yellow {
+        background: rgba(250, 204, 21, 0.18);
+        border: 1px solid rgba(250, 204, 21, 0.35);
+      }
+      .block.red {
+        background: rgba(239, 68, 68, 0.18);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+      }
+      .block.purple {
+        background: rgba(167, 139, 250, 0.18);
+        border: 1px solid rgba(167, 139, 250, 0.35);
+      }
+
+      .arrow {
+        font-size: 1.6rem;
+        color: var(--yellow);
+        font-weight: 900;
+        opacity: 0.9;
+      }
+
+      .parts {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(2, 6, 23, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      .parts h4 {
+        margin: 0 0 8px 0;
+        color: var(--yellow);
+      }
+
+      .parts ul {
+        margin: 0;
+      }
+
+      .student-q {
+        margin-top: 22px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      .student-q h4 {
+        margin: 0 0 10px 0;
+        color: var(--yellow);
+        font-size: 1.1rem;
+      }
+
+      .student-q ul {
+        margin: 0;
+      }
+
+      .progress {
+        margin-top: 14px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .footer-controls {
+        position: fixed;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .small {
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.16);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        font-weight: 800;
+        font-size: 0.85rem;
+        margin-right: 8px;
+        margin-top: 6px;
+      }
+
+      .danger {
+        background: rgba(239, 68, 68, 0.08);
+        border-left: 6px solid var(--red);
+        padding: 16px;
+        border-radius: 16px;
+        margin-top: 18px;
+      }
+
+      .danger b {
+        color: var(--red);
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="brand">
+        <div class="logo">FS</div>
+        <div>
+          <h1>File System</h1>
+          <p>Visual diagrams + points + voice guide</p>
+        </div>
+      </div>
+
+      <div class="controls-top">
+        <button class="btn-green" onclick="toggleVoice()">
+          🔊 Voice: <span id="voiceStatus">ON</span>
+        </button>
+        <button class="btn-yellow" onclick="repeatVoice()">🔁 Repeat</button>
+        <button class="btn-red" onclick="stopVoice()">⛔ Stop</button>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- SLIDE 1 -->
+      <div
+        class="slide active"
+        data-voice="
+Welcome. Today we will learn Operating System file system concepts in a complete and clear way.
+We will start from basics and go to advanced concepts.
+You will learn directory structures, file allocation methods, FAT and inode, file protection, and security.
+Each slide includes diagrams and questions.
+Use arrow keys to navigate.
+"
+      >
+        <h2>📁 File System (OS)</h2>
+        <p>
+          A <b>File System</b> is one of the most important parts of an
+          Operating System. It controls how files are
+          <b>stored, named, accessed, and protected</b>.
+        </p>
+
+        <div class="card">
+          <h3>📌 Topics Covered</h3>
+          <div class="grid">
+            <div class="mini">
+              <b>File System Basics</b><br />File, directory, metadata, access
+              methods.
+            </div>
+            <div class="mini">
+              <b>Directory Structures</b><br />Single, Two-level, Tree, Acyclic
+              Graph.
+            </div>
+            <div class="mini">
+              <b>Allocation Methods</b><br />Contiguous, Linked, Indexed (with
+              animations).
+            </div>
+            <div class="mini">
+              <b>File Tables</b><br />FAT, Inode, directory entry structure.
+            </div>
+            <div class="mini">
+              <b>Protection & Security</b><br />Permissions, ACL, encryption,
+              backup.
+            </div>
+            <div class="mini">
+              <b>Advanced</b><br />Journaling, mounting, file system types.
+            </div>
+          </div>
+        </div>
+
+        <div class="meaning-box">
+          <h4>🧠 Important Words (Easy Meaning)</h4>
+          <div class="meaning">
+            <div>
+              <span>File</span> = A collection of data (example: photo, pdf).
+            </div>
+            <div>
+              <span>Directory</span> = Folder storing file names + pointers.
+            </div>
+            <div><span>Disk Block</span> = Small storage unit of disk.</div>
+            <div><span>Pointer</span> = Address of next block.</div>
+            <div>
+              <span>Fragmentation</span> = Wasted disk space due to scattered
+              blocks.
+            </div>
+            <div>
+              <span>Metadata</span> = Data about file (size, owner,
+              permissions).
+            </div>
+          </div>
+        </div>
+
+        <div class="tip">
+          <b>Navigation:</b> Right Arrow = Next, Left Arrow = Previous, R =
+          Restart, S = Stop voice, V = Toggle voice.
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What is the difference between a file and a directory?</li>
+            <li>Why is file system needed in OS?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 1 / 20</p>
+      </div>
+
+      <!-- SLIDE 2 -->
+      <div
+        class="slide"
+        data-voice="
+Let us understand file system in simple way.
+File system is a manager.
+It decides where the file is stored in disk and how to access it.
+It also provides naming, directories, and security.
+Without file system, disk will be a huge unorganized memory space.
+"
+      >
+        <h2>1) File System Concept</h2>
+        <p>
+          File System is like a <b>manager</b> that controls how files are
+          stored and retrieved from storage devices like HDD, SSD, or even pen
+          drive.
+        </p>
+
+        <div class="card">
+          <h3>What File System Provides</h3>
+          <ul>
+            <li><b>File naming</b> (example: notes.txt)</li>
+            <li><b>Directory management</b> (folders)</li>
+            <li><b>Mapping</b> file name to physical disk blocks</li>
+            <li><b>Access control</b> (who can read/write)</li>
+            <li><b>Efficient space usage</b></li>
+            <li><b>Backup and recovery support</b></li>
+          </ul>
+
+          <div class="highlight">
+            <strong>Key Idea:</strong>
+            File system converts <b>human friendly names</b> into
+            <b>machine disk locations</b>.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What happens if file system is not present?</li>
+            <li>What is meant by mapping file name to disk blocks?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 2 / 20</p>
+      </div>
+
+      <!-- SLIDE 3 -->
+      <div
+        class="slide"
+        data-voice="
+Now understand file system with real life analogy.
+Imagine a big library.
+Books are files.
+Book shelf is directory.
+Library index register is metadata.
+Without index register, finding a book becomes very slow.
+File system works like this library system.
+"
+      >
+        <h2>2) Real-Life Analogy (Library Example)</h2>
+        <p>
+          Think about a <b>library</b>. If books are randomly thrown, you cannot
+          find them. A library uses shelves and an index system.
+        </p>
+
+        <div class="card">
+          <h3>Analogy Table</h3>
+          <table>
+            <tr>
+              <th>Library</th>
+              <th>File System</th>
+            </tr>
+            <tr>
+              <td>Book</td>
+              <td>File</td>
+            </tr>
+            <tr>
+              <td>Shelf</td>
+              <td>Directory</td>
+            </tr>
+            <tr>
+              <td>Index register</td>
+              <td>Metadata table</td>
+            </tr>
+            <tr>
+              <td>Librarian</td>
+              <td>Operating System</td>
+            </tr>
+            <tr>
+              <td>Book number</td>
+              <td>Disk block number</td>
+            </tr>
+          </table>
+
+          <div class="tip">
+            <b>Interesting Fact:</b> Google Drive is also a file system, but
+            cloud-based.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>How does file system help in faster searching?</li>
+            <li>In library analogy, what is equivalent to disk block?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 3 / 20</p>
+      </div>
+
+      <!-- SLIDE 4 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn file system layers.
+Applications request file open.
+The request goes to logical file system.
+Then file organization module.
+Then basic file system.
+Then device driver.
+Then hardware disk.
+This is the pipeline.
+"
+      >
+        <h2>3) File System Layers (How it Works Internally)</h2>
+        <p>
+          File system works in multiple layers. Each layer has a responsibility.
+        </p>
+
+        <div class="card">
+          <h3>Layer Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">App</div>
+            <div class="arrow">⬇</div>
+            <div class="block">Logical FS</div>
+            <div class="arrow">⬇</div>
+            <div class="block purple">File Org</div>
+            <div class="arrow">⬇</div>
+            <div class="block green">Basic FS</div>
+            <div class="arrow">⬇</div>
+            <div class="block red">Device Driver</div>
+            <div class="arrow">⬇</div>
+            <div class="block yellow">Disk</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li>
+                <b>Logical FS:</b> Handles file name, permissions, directory.
+              </li>
+              <li>
+                <b>File Organization Module:</b> Decides file allocation method.
+              </li>
+              <li><b>Basic FS:</b> Reads/writes blocks.</li>
+              <li><b>Device Driver:</b> Communicates with hardware.</li>
+            </ul>
+          </div>
+
+          <div class="highlight">
+            <strong>Example:</strong> When you click "open PDF", OS uses these
+            layers to find disk blocks.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Which layer checks permissions?</li>
+            <li>Which layer interacts directly with disk hardware?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 4 / 20</p>
+      </div>
+
+      <!-- SLIDE 5 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn directory structures.
+Directory structure means how folders are arranged.
+It affects file searching speed and file sharing.
+We will learn single level, two level, tree, and acyclic graph.
+"
+      >
+        <h2>4) Directory Structures (Overview)</h2>
+        <p>
+          Directory structure defines how directories (folders) are organized in
+          the OS.
+        </p>
+
+        <div class="card">
+          <h3>Main Types</h3>
+          <div class="grid">
+            <div class="mini">
+              <b>Single Level</b><br />One directory for all files.
+            </div>
+            <div class="mini">
+              <b>Two Level</b><br />Separate directory for each user.
+            </div>
+            <div class="mini">
+              <b>Tree</b><br />Root directory with subfolders.
+            </div>
+            <div class="mini">
+              <b>Acyclic Graph</b><br />Tree + sharing links allowed.
+            </div>
+          </div>
+
+          <div class="tip">
+            <b>Exam Rule:</b> Always write <b>advantages + disadvantages</b> for
+            each directory structure.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why is tree directory most popular?</li>
+            <li>Which structure supports file sharing?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 5 / 20</p>
+      </div>
+
+      <!-- SLIDE 6 -->
+      <div
+        class="slide"
+        data-voice="
+Single level directory is the simplest.
+Only one directory exists.
+All files are inside that directory.
+It is easy but causes file name conflicts.
+It is not good for multi user systems.
+"
+      >
+        <h2>5) Single-Level Directory</h2>
+        <p>All files exist in one single directory.</p>
+
+        <div class="card">
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">DIR</div>
+            <div class="arrow">➡</div>
+            <div class="block">A.txt</div>
+            <div class="block">B.pdf</div>
+            <div class="block">C.mp4</div>
+            <div class="block">D.doc</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>DIR:</b> Single directory (one folder).</li>
+              <li><b>Files:</b> All files stored together.</li>
+            </ul>
+          </div>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>Very easy design</li>
+            <li>Simple searching if files are less</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Name conflict problem</li>
+            <li>No grouping possible</li>
+            <li>Not suitable for multi-user OS</li>
+          </ul>
+
+          <div class="danger">
+            <b>Big Problem:</b> If two users create file called
+            <b>notes.txt</b>, conflict happens.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What is name conflict in single directory?</li>
+            <li>Is it suitable for modern OS like Windows?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 6 / 20</p>
+      </div>
+
+      <!-- SLIDE 7 -->
+      <div
+        class="slide"
+        data-voice="
+Two level directory gives separate folder for each user.
+Master file directory stores list of user directories.
+Each user directory stores user files.
+This reduces name conflicts.
+But sharing between users is difficult.
+"
+      >
+        <h2>6) Two-Level Directory</h2>
+        <p>Two-level directory creates separate directory for each user.</p>
+
+        <div class="card">
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">MFD</div>
+            <div class="arrow">➡</div>
+            <div class="block green">User1</div>
+            <div class="block green">User2</div>
+            <div class="block green">User3</div>
+          </div>
+
+          <div class="diagram">
+            <div class="block green">User1</div>
+            <div class="arrow">➡</div>
+            <div class="block">A.txt</div>
+            <div class="block">B.pdf</div>
+          </div>
+
+          <div class="diagram">
+            <div class="block green">User2</div>
+            <div class="arrow">➡</div>
+            <div class="block">A.txt</div>
+            <div class="block">Movie.mp4</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>MFD:</b> Master File Directory (contains users list)</li>
+              <li><b>User folder:</b> Each user has separate file directory</li>
+            </ul>
+          </div>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>No naming conflict between users</li>
+            <li>Better user separation</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Sharing is hard</li>
+            <li>Not flexible like tree structure</li>
+          </ul>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What is MFD and UFD?</li>
+            <li>Why file sharing is difficult in two-level directory?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 7 / 20</p>
+      </div>
+
+      <!-- SLIDE 8 -->
+      <div
+        class="slide"
+        data-voice="
+Tree directory is hierarchical.
+It starts with root.
+Root contains subdirectories.
+Each subdirectory can contain files and more subdirectories.
+This is used in Linux, Windows, and Android.
+It supports grouping and fast organization.
+"
+      >
+        <h2>7) Tree Directory Structure</h2>
+        <p>Tree directory is the most widely used structure.</p>
+
+        <div class="card">
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">ROOT</div>
+            <div class="arrow">➡</div>
+            <div class="block green">Docs</div>
+            <div class="block green">Music</div>
+            <div class="block green">Videos</div>
+            <div class="block green">Photos</div>
+          </div>
+
+          <div class="diagram">
+            <div class="block green">Docs</div>
+            <div class="arrow">➡</div>
+            <div class="block">Resume.pdf</div>
+            <div class="block">Notes.txt</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>ROOT:</b> Main directory (top level)</li>
+              <li><b>Docs/Music:</b> Subdirectories</li>
+              <li><b>Files:</b> Stored inside folders</li>
+            </ul>
+          </div>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>Easy grouping of files</li>
+            <li>Fast searching with path names</li>
+            <li>Supports multi-user OS</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Path becomes long</li>
+            <li>More complex implementation</li>
+          </ul>
+
+          <div class="highlight">
+            <strong>Example Path:</strong> /root/docs/resume.pdf
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What is absolute path?</li>
+            <li>Why tree directory is better than single directory?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 8 / 20</p>
+      </div>
+
+      <!-- SLIDE 9 -->
+      <div
+        class="slide"
+        data-voice="
+Acyclic graph directory allows sharing.
+One file can be present in multiple directories using links.
+But cycles are not allowed.
+If cycles occur, OS may go into infinite loop while searching.
+Therefore OS uses link count or garbage collection.
+"
+      >
+        <h2>8) Acyclic Graph Directory (Sharing)</h2>
+        <p>Acyclic graph directory supports file sharing by links.</p>
+
+        <div class="card">
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">ROOT</div>
+            <div class="arrow">➡</div>
+            <div class="block green">User1</div>
+            <div class="block green">User2</div>
+          </div>
+
+          <div class="diagram">
+            <div class="block green">User1</div>
+            <div class="arrow">➡</div>
+            <div class="block yellow">Project.doc</div>
+          </div>
+
+          <div class="diagram">
+            <div class="block green">User2</div>
+            <div class="arrow">➡</div>
+            <div class="block purple">Link → Project.doc</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>Project.doc:</b> Original file stored once.</li>
+              <li><b>Link:</b> Shortcut pointer to original file.</li>
+            </ul>
+          </div>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>Saves disk space</li>
+            <li>Sharing becomes easy</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Deletion becomes complicated</li>
+            <li>Need link count to avoid wrong deletion</li>
+          </ul>
+
+          <div class="meaning-box">
+            <h4>Difficult Word Meaning</h4>
+            <div class="meaning">
+              <div>
+                <span>Cycle</span> = Directory points back creating loop.
+              </div>
+              <div>
+                <span>Garbage Collection</span> = Cleaning unused files
+                automatically.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why cycles are dangerous in directory structure?</li>
+            <li>What is link count?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 9 / 20</p>
+      </div>
+
+      <!-- SLIDE 10 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn file allocation methods.
+Allocation means how file blocks are stored on disk.
+Disk is divided into fixed size blocks.
+File is divided into blocks.
+OS decides how these blocks are allocated.
+Main methods are contiguous, linked, and indexed.
+"
+      >
+        <h2>9) File Allocation Methods (Core Concept)</h2>
+        <p>
+          Disk is divided into blocks. Files are stored inside these blocks.
+          Allocation method decides how blocks are chosen.
+        </p>
+
+        <div class="card">
+          <h3>Disk Block Example</h3>
+          <div class="diagram">
+            <div class="block">0</div>
+            <div class="block">1</div>
+            <div class="block">2</div>
+            <div class="block">3</div>
+            <div class="block">4</div>
+            <div class="block">5</div>
+            <div class="block">6</div>
+            <div class="block">7</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning</h4>
+            <ul>
+              <li>Each block is fixed size (example: 4 KB).</li>
+              <li>A file uses multiple blocks.</li>
+              <li>OS stores file block addresses in directory tables.</li>
+            </ul>
+          </div>
+
+          <h3>Methods</h3>
+          <ul>
+            <li><b>Contiguous:</b> continuous blocks</li>
+            <li><b>Linked:</b> pointer chain</li>
+            <li><b>Indexed:</b> index table stores all addresses</li>
+          </ul>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why disk is divided into blocks?</li>
+            <li>Which allocation is best for random access?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 10 / 20</p>
+      </div>
+
+      <!-- SLIDE 11 -->
+      <div
+        class="slide"
+        data-voice="
+Contiguous allocation stores file in continuous blocks.
+It is like reserving continuous seats in a cinema.
+It is very fast for sequential reading.
+But it causes external fragmentation.
+Also file growth becomes hard because next blocks may be occupied.
+"
+      >
+        <h2>10) Contiguous Allocation (Full Explanation)</h2>
+        <p>File blocks are stored in consecutive order.</p>
+
+        <div class="card">
+          <h3>Animation Diagram</h3>
+          <p class="small">Click animate to see block reservation.</p>
+          <div class="diagram" id="contig"></div>
+          <button class="btn-primary" onclick="animateContig()">
+            ▶ Animate
+          </button>
+
+          <div class="parts">
+            <h4>Diagram Parts Meaning</h4>
+            <ul>
+              <li><b>Green blocks:</b> allocated to file.</li>
+              <li><b>Numbers:</b> block addresses on disk.</li>
+              <li><b>Continuous group:</b> file stored sequentially.</li>
+            </ul>
+          </div>
+
+          <h3>How OS Stores Metadata</h3>
+          <table>
+            <tr>
+              <th>File Name</th>
+              <th>Start Block</th>
+              <th>Length (Blocks)</th>
+            </tr>
+            <tr>
+              <td>A.txt</td>
+              <td>4</td>
+              <td>4</td>
+            </tr>
+          </table>
+
+          <div class="highlight">
+            <strong>Important:</strong> To access block k of file → start + k
+          </div>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>Fast sequential access</li>
+            <li>Fast random access (direct calculation)</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>External fragmentation</li>
+            <li>File growth difficult</li>
+            <li>Need file size in advance</li>
+          </ul>
+
+          <div class="tip">
+            <b>Real Life Example:</b> Booking 4 seats together in bus. If seats
+            are scattered, you cannot sit together.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why contiguous allocation is fastest?</li>
+            <li>What is external fragmentation?</li>
+            <li>Why file growth is difficult?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 11 / 20</p>
+      </div>
+
+      <!-- SLIDE 12 -->
+      <div
+        class="slide"
+        data-voice="
+Linked allocation stores blocks anywhere in disk.
+Each block contains pointer to next block.
+It removes external fragmentation.
+But random access becomes slow because we must follow pointers.
+Also pointer overhead exists.
+If one pointer is corrupted, file may be lost.
+"
+      >
+        <h2>11) Linked Allocation (Full Explanation)</h2>
+        <p>Blocks can be stored anywhere, connected like a linked list.</p>
+
+        <div class="card">
+          <h3>Animation Diagram</h3>
+          <div class="diagram" id="linked"></div>
+          <button class="btn-primary" onclick="animateLinked()">
+            ▶ Animate
+          </button>
+
+          <div class="parts">
+            <h4>Diagram Parts Meaning</h4>
+            <ul>
+              <li><b>Yellow blocks:</b> file blocks.</li>
+              <li><b>Arrow:</b> pointer to next block.</li>
+              <li><b>Scattered blocks:</b> stored in different places.</li>
+            </ul>
+          </div>
+
+          <h3>How OS Stores Metadata</h3>
+          <table>
+            <tr>
+              <th>File</th>
+              <th>Start Block</th>
+              <th>End Block</th>
+            </tr>
+            <tr>
+              <td>B.mp4</td>
+              <td>2</td>
+              <td>10</td>
+            </tr>
+          </table>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>No external fragmentation</li>
+            <li>File can grow easily</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Slow random access</li>
+            <li>Pointer overhead (extra space)</li>
+            <li>Pointer corruption = file corruption</li>
+          </ul>
+
+          <div class="danger">
+            <b>Danger:</b> If pointer breaks, OS cannot find next block.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why random access is slow in linked allocation?</li>
+            <li>What is pointer overhead?</li>
+            <li>Which problem is solved compared to contiguous?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 12 / 20</p>
+      </div>
+
+      <!-- SLIDE 13 -->
+      <div
+        class="slide"
+        data-voice="
+Indexed allocation uses an index block.
+Index block stores all addresses of file blocks.
+This provides fast direct access.
+But index block uses extra memory.
+If file is huge, multiple index blocks may be needed.
+"
+      >
+        <h2>12) Indexed Allocation (Full Explanation)</h2>
+        <p>
+          Indexed allocation uses a separate index block containing addresses.
+        </p>
+
+        <div class="card">
+          <h3>Animation Diagram</h3>
+          <div class="diagram" id="indexed"></div>
+          <button class="btn-primary" onclick="animateIndexed()">
+            ▶ Animate
+          </button>
+
+          <div class="parts">
+            <h4>Diagram Parts Meaning</h4>
+            <ul>
+              <li><b>Index block:</b> stores list of block addresses.</li>
+              <li><b>Red blocks:</b> actual file data blocks.</li>
+              <li><b>Arrows:</b> index points to each block.</li>
+            </ul>
+          </div>
+
+          <h3>Example Index Table</h3>
+          <table>
+            <tr>
+              <th>Index Entry</th>
+              <th>Block Address</th>
+            </tr>
+            <tr>
+              <td>0</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>1</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>8</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>11</td>
+            </tr>
+          </table>
+
+          <h3>Advantages</h3>
+          <ul>
+            <li>Fast random access</li>
+            <li>No external fragmentation</li>
+          </ul>
+
+          <h3>Disadvantages</h3>
+          <ul>
+            <li>Index block overhead</li>
+            <li>Wasted space for small files</li>
+          </ul>
+
+          <div class="tip">
+            <b>Real Example:</b> Like phone contacts list. Name is stored once,
+            and you can directly access number.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why indexed allocation is best for direct access?</li>
+            <li>What is overhead in indexed allocation?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 13 / 20</p>
+      </div>
+
+      <!-- SLIDE 14 -->
+      <div
+        class="slide"
+        data-voice="
+Now compare all allocation methods.
+Contiguous is fastest but fragmentation.
+Linked avoids fragmentation but slow random access.
+Indexed provides best random access but overhead.
+In exams, comparison table is important.
+"
+      >
+        <h2>13) Allocation Methods Comparison Table</h2>
+        <p>This table is very important for exams.</p>
+
+        <div class="card">
+          <table>
+            <tr>
+              <th>Method</th>
+              <th>Random Access</th>
+              <th>Fragmentation</th>
+              <th>Overhead</th>
+              <th>File Growth</th>
+            </tr>
+            <tr>
+              <td>Contiguous</td>
+              <td>Fast</td>
+              <td>External Fragmentation</td>
+              <td>Low</td>
+              <td>Difficult</td>
+            </tr>
+            <tr>
+              <td>Linked</td>
+              <td>Slow</td>
+              <td>No External</td>
+              <td>Pointer Overhead</td>
+              <td>Easy</td>
+            </tr>
+            <tr>
+              <td>Indexed</td>
+              <td>Fast</td>
+              <td>No External</td>
+              <td>Index Block Overhead</td>
+              <td>Easy</td>
+            </tr>
+          </table>
+
+          <div class="tip">
+            <b>Memory Trick:</b><br />
+            Contiguous = Fast but Frag<br />
+            Linked = Safe but Slow<br />
+            Indexed = Best Access but Extra Table
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Which method is best for large multimedia file streaming?</li>
+            <li>Which method is best for database random access?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 14 / 20</p>
+      </div>
+
+      <!-- SLIDE 15 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn FAT file allocation table.
+FAT is used in old file systems like FAT16 and FAT32.
+FAT is like a table storing next block pointer.
+It is like linked allocation but pointers stored in a table.
+This improves speed because pointers are in memory.
+"
+      >
+        <h2>14) FAT (File Allocation Table)</h2>
+        <p>FAT is a famous file system technique used in FAT16 and FAT32.</p>
+
+        <div class="card">
+          <h3>Concept</h3>
+          <p>
+            FAT stores a table where each entry points to next block. It is like
+            linked allocation but pointers are stored in one centralized table.
+          </p>
+
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">FAT</div>
+            <div class="arrow">➡</div>
+            <div class="block">2→7</div>
+            <div class="block">7→4</div>
+            <div class="block">4→10</div>
+            <div class="block">10→EOF</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>2→7</b> means block 2 points to block 7.</li>
+              <li><b>EOF</b> means end of file.</li>
+            </ul>
+          </div>
+
+          <div class="highlight">
+            <strong>Why FAT is useful?</strong><br />
+            Because OS can load FAT into memory and access next block quickly.
+          </div>
+
+          <div class="danger">
+            <b>Weakness:</b> FAT table is huge for large disks.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>How is FAT different from linked allocation?</li>
+            <li>What happens if FAT table gets corrupted?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 15 / 20</p>
+      </div>
+
+      <!-- SLIDE 16 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn inode concept used in Unix and Linux.
+Inode stores file metadata like owner, permissions, timestamps.
+It also stores pointers to data blocks.
+File name is not stored in inode.
+File name is stored in directory entry.
+This is a very important exam concept.
+"
+      >
+        <h2>15) Inode (Unix/Linux File System)</h2>
+        <p>In Unix/Linux systems, each file has an <b>inode</b>.</p>
+
+        <div class="card">
+          <h3>What inode contains?</h3>
+          <ul>
+            <li>File size</li>
+            <li>Owner ID</li>
+            <li>Permissions (rwx)</li>
+            <li>Creation time, modification time</li>
+            <li>Disk block pointers</li>
+          </ul>
+
+          <div class="highlight">
+            <strong>Important:</strong> inode does NOT store file name. File
+            name is stored inside directory table.
+          </div>
+
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">Dir Entry</div>
+            <div class="arrow">➡</div>
+            <div class="block purple">inode</div>
+            <div class="arrow">➡</div>
+            <div class="block green">Data Block</div>
+            <div class="block green">Data Block</div>
+          </div>
+
+          <div class="parts">
+            <h4>Diagram Parts Meaning</h4>
+            <ul>
+              <li><b>Directory Entry:</b> stores file name + inode number.</li>
+              <li><b>inode:</b> stores metadata + block addresses.</li>
+              <li><b>Data Blocks:</b> actual file data.</li>
+            </ul>
+          </div>
+
+          <div class="meaning-box">
+            <h4>Difficult Word Meaning</h4>
+            <div class="meaning">
+              <div><span>inode</span> = index node (file info structure).</div>
+              <div><span>Directory Entry</span> = file name mapping table.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Does inode store file name?</li>
+            <li>What is stored in directory entry?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 16 / 20</p>
+      </div>
+
+      <!-- SLIDE 17 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn file protection and permissions.
+Protection decides who can access file.
+Common permissions are read write execute.
+Linux uses rwx for user group others.
+Access control list gives more detailed control.
+"
+      >
+        <h2>16) File Protection & Permissions</h2>
+        <p>File protection prevents unauthorized access.</p>
+
+        <div class="card">
+          <h3>Permissions</h3>
+          <table>
+            <tr>
+              <th>Permission</th>
+              <th>Meaning</th>
+              <th>Example</th>
+            </tr>
+            <tr>
+              <td>Read (r)</td>
+              <td>View file</td>
+              <td>Open PDF</td>
+            </tr>
+            <tr>
+              <td>Write (w)</td>
+              <td>Modify file</td>
+              <td>Edit file</td>
+            </tr>
+            <tr>
+              <td>Execute (x)</td>
+              <td>Run program</td>
+              <td>Run script</td>
+            </tr>
+          </table>
+
+          <h3>Linux Permission Example</h3>
+          <div class="highlight">
+            <strong>rwx r-x r--</strong><br />
+            Owner: read write execute<br />
+            Group: read execute<br />
+            Others: read only
+          </div>
+
+          <div class="meaning-box">
+            <h4>Difficult Word Meaning</h4>
+            <div class="meaning">
+              <div>
+                <span>Authentication</span> = checking identity (password).
+              </div>
+              <div><span>Authorization</span> = permission to access file.</div>
+              <div><span>ACL</span> = Access Control List.</div>
+            </div>
+          </div>
+
+          <div class="tip">
+            <b>Real Life Example:</b> WhatsApp group admin decides who can send
+            message.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>
+              What is the difference between authentication and authorization?
+            </li>
+            <li>What is ACL used for?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 17 / 20</p>
+      </div>
+
+      <!-- SLIDE 18 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn file security techniques.
+Encryption protects data from hackers.
+Backup protects from accidental deletion.
+Journaling helps recover from crashes.
+Checksums help detect corruption.
+"
+      >
+        <h2>17) File Security Techniques</h2>
+        <p>Protection means permissions. Security means stronger methods.</p>
+
+        <div class="card">
+          <h3>Security Methods</h3>
+          <ul>
+            <li><b>Encryption:</b> converts data into unreadable form</li>
+            <li><b>Backup:</b> keeps copy of important files</li>
+            <li><b>Checksums:</b> detect data corruption</li>
+            <li><b>Journaling:</b> stores changes before applying</li>
+          </ul>
+
+          <div class="highlight">
+            <strong>Example:</strong>
+            If laptop crashes during file writing, journaling helps restore file
+            system.
+          </div>
+
+          <div class="meaning-box">
+            <h4>Difficult Word Meaning</h4>
+            <div class="meaning">
+              <div><span>Encryption</span> = locking data with secret key.</div>
+              <div><span>Checksum</span> = digital fingerprint of data.</div>
+              <div><span>Journaling</span> = keeping log of changes.</div>
+            </div>
+          </div>
+
+          <div class="tip">
+            <b>Interesting Fact:</b> Modern file systems like NTFS and EXT4 use
+            journaling.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Why journaling is important?</li>
+            <li>What is the purpose of checksum?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 18 / 20</p>
+      </div>
+
+      <!-- SLIDE 19 -->
+      <div
+        class="slide"
+        data-voice="
+Now we learn mounting concept.
+Mounting means connecting file system to directory tree.
+For example, in Linux, pen drive is mounted into /media folder.
+Without mounting, OS cannot access file system.
+"
+      >
+        <h2>18) Mounting (Important Advanced Concept)</h2>
+        <p>Mounting means attaching a file system to the OS directory tree.</p>
+
+        <div class="card">
+          <h3>Diagram</h3>
+          <div class="diagram">
+            <div class="block yellow">Disk</div>
+            <div class="arrow">➡</div>
+            <div class="block green">Mount Point</div>
+            <div class="arrow">➡</div>
+            <div class="block purple">/media/usb</div>
+          </div>
+
+          <div class="parts">
+            <h4>Meaning of Diagram Parts</h4>
+            <ul>
+              <li><b>Disk:</b> external drive or partition.</li>
+              <li><b>Mount point:</b> directory where it gets attached.</li>
+              <li><b>/media/usb:</b> example mount folder in Linux.</li>
+            </ul>
+          </div>
+
+          <div class="highlight">
+            <strong>Example:</strong> When you insert pendrive, OS mounts it
+            automatically.
+          </div>
+
+          <div class="tip">
+            <b>Simple Meaning:</b> Mounting = connecting storage to folder.
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>What is mount point?</li>
+            <li>Why mounting is required?</li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 19 / 20</p>
+      </div>
+
+      <!-- SLIDE 20 -->
+      <div
+        class="slide"
+        data-voice="
+Finally let us summarize everything.
+File system manages files and directories.
+Directory structures decide folder organization.
+Allocation methods decide how disk blocks are used.
+FAT and inode are real implementations.
+Protection ensures access control.
+Security ensures safety using encryption and backup.
+You are now ready for exam and interview.
+"
+      >
+        <h2>19) Final Summary (Complete Revision)</h2>
+        <p>Now you have learned full File System concepts.</p>
+
+        <div class="card">
+          <h3>Revision Points</h3>
+          <ul>
+            <li>File system organizes storage into files and folders.</li>
+            <li>Directory structures define how directories are arranged.</li>
+            <li>Allocation methods decide block storage technique.</li>
+            <li>Contiguous is fast but causes fragmentation.</li>
+            <li>Linked is flexible but slow random access.</li>
+            <li>Indexed is best for random access but needs index overhead.</li>
+            <li>FAT is table-based linked allocation.</li>
+            <li>inode is metadata structure used in Linux.</li>
+            <li>Permissions and ACL provide protection.</li>
+            <li>Encryption, backup, journaling provide security.</li>
+          </ul>
+
+          <div class="tip">
+            <b>Final Trick:</b>
+            If question asks "fast sequential access" → Contiguous If question
+            asks "no fragmentation" → Linked/Indexed If question asks "direct
+            access" → Indexed
+          </div>
+        </div>
+
+        <div class="student-q">
+          <h4>Questions for Students</h4>
+          <ul>
+            <li>Which allocation method is used in FAT?</li>
+            <li>Which file system concept is used in Linux (inode or FAT)?</li>
+            <li>
+              Write 3 differences between Contiguous and Indexed allocation.
+            </li>
+          </ul>
+        </div>
+
+        <p class="progress">Slide 20 / 20</p>
+      </div>
+    </div>
+
+    <div class="footer-controls">
+      <button onclick="prevSlide()">⬅ Prev</button>
+      <button class="btn-primary" onclick="nextSlide()">Next ➡</button>
+      <button class="btn-yellow" onclick="restartSlides()">🔄 Restart</button>
+    </div>
+
+    <script>
+      let slides = document.querySelectorAll(".slide");
+      let current = 0;
+
+      let voiceEnabled = true;
+      let lastText = "";
+
+      function speak(text) {
+        if (!voiceEnabled) return;
+        speechSynthesis.cancel();
+        let u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.92;
+        u.pitch = 1;
+        u.volume = 1;
+        lastText = text;
+        speechSynthesis.speak(u);
+      }
+
+      function stopVoice() {
+        speechSynthesis.cancel();
+      }
+
+      function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        document.getElementById("voiceStatus").innerText = voiceEnabled
+          ? "ON"
+          : "OFF";
+        if (voiceEnabled) speak(slides[current].dataset.voice);
+        else stopVoice();
+      }
+
+      function repeatVoice() {
+        if (lastText.trim() !== "") speak(lastText);
+      }
+
+      function showSlide(index) {
+        slides[current].classList.remove("active");
+        current = index;
+        slides[current].classList.add("active");
+        speak(slides[current].dataset.voice);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function nextSlide() {
+        let n = current + 1;
+        if (n >= slides.length) n = 0;
+        showSlide(n);
+      }
+
+      function prevSlide() {
+        let p = current - 1;
+        if (p < 0) p = slides.length - 1;
+        showSlide(p);
+      }
+
+      function restartSlides() {
+        showSlide(0);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") nextSlide();
+        if (e.key === "ArrowLeft") prevSlide();
+        if (e.key.toLowerCase() === "r") restartSlides();
+        if (e.key.toLowerCase() === "s") stopVoice();
+        if (e.key.toLowerCase() === "v") toggleVoice();
+      });
+
+      function animateContig() {
+        let cont = document.getElementById("contig");
+        cont.innerHTML = "";
+        let total = 12;
+        let start = 4;
+        let len = 4;
+
+        for (let i = 0; i < total; i++) {
+          let b = document.createElement("div");
+          b.className = "block";
+          b.innerText = i;
+          cont.appendChild(b);
+        }
+
+        let blocks = cont.querySelectorAll(".block");
+        let t = 0;
+
+        for (let i = start; i < start + len; i++) {
+          setTimeout(() => {
+            blocks[i].classList.add("green");
+            blocks[i].innerText = "A";
+          }, t);
+          t += 320;
+        }
+      }
+
+      function animateLinked() {
+        let cont = document.getElementById("linked");
+        cont.innerHTML = "";
+        let chain = [2, 7, 4, 10];
+
+        chain.forEach((num, idx) => {
+          let b = document.createElement("div");
+          b.className = "block";
+          b.innerText = num;
+          cont.appendChild(b);
+
+          if (idx !== chain.length - 1) {
+            let a = document.createElement("div");
+            a.className = "arrow";
+            a.innerText = "➡";
+            cont.appendChild(a);
+          }
+        });
+
+        let blocks = cont.querySelectorAll(".block");
+        let t = 0;
+        blocks.forEach((blk) => {
+          setTimeout(() => {
+            blk.classList.add("yellow");
+            blk.innerText = "B";
+          }, t);
+          t += 450;
+        });
+      }
+
+      function animateIndexed() {
+        let cont = document.getElementById("indexed");
+        cont.innerHTML = "";
+
+        let indexBlock = document.createElement("div");
+        indexBlock.className = "block yellow";
+        indexBlock.style.width = "120px";
+        indexBlock.innerText = "INDEX";
+        cont.appendChild(indexBlock);
+
+        let arrow = document.createElement("div");
+        arrow.className = "arrow";
+        arrow.innerText = "➡";
+        cont.appendChild(arrow);
+
+        let arr = [1, 5, 8, 11];
+        arr.forEach((num) => {
+          let b = document.createElement("div");
+          b.className = "block";
+          b.innerText = num;
+          cont.appendChild(b);
+        });
+
+        let blocks = cont.querySelectorAll(".block");
+        let t = 0;
+
+        blocks.forEach((blk) => {
+          setTimeout(() => {
+            blk.classList.add("red");
+            if (blk.innerText !== "INDEX") blk.innerText = "C";
+          }, t);
+          t += 400;
+        });
+      }
+
+      animateContig();
+      animateLinked();
+      animateIndexed();
+
+      speak(slides[0].dataset.voice);
+    </script>
+  </body>
+</html>
